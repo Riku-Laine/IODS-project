@@ -1,0 +1,4 @@
+
+# About the course
+
+This course will probably be a bit easy in the beginning, if R basics are covered as I'm somewhat used to using it. You may explore my course diary from this link: <https://riku-laine.github.io/IODS-project/>.
