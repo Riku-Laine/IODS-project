@@ -1,11 +1,13 @@
 # Author: Riku Laine
 # Date: Tue Nov 14 13:15:18 2017
 # Project name: IODS week 2
-# Description: This is a file for IODS week 2. Hopefully this week
-# I'll remember to return the excercises this week.
+# Description: This is a file for IODS week 2. The aim of this script is
+# to create the data set used in further analysis.
 
+# Importing libraries
 library(MASS)
 
+# Reading in data
 url <- "http://www.helsinki.fi/~kvehkala/JYTmooc/JYTOPKYS3-data.txt"
 
 lrn14 <- read.table(file = url, sep = '\t', header = T)
@@ -25,11 +27,22 @@ colnames(lrn14)
 summary(lrn14$Age)
 
 # Participants are 17-55 years old, whilst half of them are
-# 21-27 years old (interquartile range).
+# 21-27 years old (the interquartile range).
 
 str(lrn14)
 
-an_data <- dplyr::select(lrn14, gender, Age, Attitude,Points)
+# Data is mostly numerical data, gender is coded as a factor with
+# levels for males and females.
+
+#### Creating the analysis data set ###
+
+# Select the base variables gender, Age, Attitude and Points from
+# data frame lrn14.
+
+an_data <- dplyr::select(lrn14, gender, Age, Attitude, Points)
+
+# Constructing the variables as was instructed by Kimmo in the 
+# meta page.
 
 an_data$d_sm <- lrn14$D03 + lrn14$D11 + lrn14$D19 + lrn14$D27
 an_data$d_ri <- lrn14$D07 + lrn14$D14 + lrn14$D22 + lrn14$D30
@@ -46,19 +59,22 @@ an_data$Deep_adj <- an_data$Deep/12
 an_data$Surf_adj <- an_data$Surf/12
 an_data$Stra_adj <- an_data$Stra/8
 
+# Omit observations which had zero points from the final exam.
 an_data <- an_data[an_data$Points!=0,]
 
+# Choose the desired columns for the final data set.
 an_data <- an_data[,colnames(an_data) %in% c('gender', 'Age', 'Attitude', 'Points',
                                              'Deep_adj', 'Surf_adj', 'Stra_adj')]
+
+# Check dimensions of the data frame: should be 166 times 7.
 dim(an_data)
 
-setwd(dir = "~/GitHub/IODS-project/data/")
+# Set working directory and write the an_data data frame there excluding row names.
 
+setwd(dir = "~/GitHub/IODS-project/data/")
 write.csv(an_data, file = "learning2014.csv", row.names = F)
 
+# Test that the data is readable
 testing<- read.csv("learning2014.csv")
-
 str(testing)
 head(testing)
-
-# Analysis
