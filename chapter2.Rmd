@@ -50,7 +50,7 @@ So, from the above we can conclude that the data has 166 observations and each o
 * measures for
     + Deep learning
     + How surfaced is the learning
-    + Strategic learningr
+    + Strategic learning
 
 Of the respondents 110 identified themselves as female and 56 as male. Respondents were 17-55 years old and half of them are 21-27 years old. They got an average of 22.72 points on the final exam and were somewhat deep learners ($\mu$ = 3.68). 
 
@@ -60,7 +60,7 @@ Of the respondents 110 identified themselves as female and 56 as male. Responden
 
 First, we will construct pairwise plots of each variable and draw bigger histograms to see the variables' distribution.
 
-```{r Plots, echo = F}
+```{r Plots, echo = F, out.width="\\maxwidth", out.height="\\maxheight"}
 par(mfrow=c(3,2))
 for (i in 2:7) hist(students2014[,i], main = colnames(students2014)[i])
 par(mfrow=c(1,1))
@@ -68,4 +68,34 @@ par(mfrow=c(1,1))
 ggpairs(students2014[,-1])
 ```
 
-Summaries were printed in the previpus section, but here we clearly see how the distribution of ages is haeavily skewed to the left whereas other variables have approximatly symmetrical distributions.
+Summaries were printed in the previous section, but here we clearly see how the distribution of ages is heavily skewed to the left whereas other variables have approximately symmetrical distributions. From the plot matrix, we can conclude that none of the variables correlate with each other much as the highest absolute correlation of 0.437 is with Points and Attitude which would be classified as weak positive correlation.
+
+## Regression
+
+Let's perform a linear regression:
+
+```{r Regression, echo =F}
+
+# Model itself
+model <- lm(Points ~ Attitude + Age + Stra_adj, data = students2014)
+
+# Summary
+summary(model)
+```
+
+From the summary it is visible that only attitude raises -- or affects -- performance in the final exam on 5 per cent significance level. For every attitude point gained it is estimated that an average of 0.35 exam points is achieved. We also notice from the output that age does not have a significant effect on our model so we remove it from the model.
+
+```{r Update model}
+model <- update(model, formula. = .~. -Age)
+
+summary(model)
+```
+
+*Using a summary of your fitted model, explain the relationship between the chosen explanatory variables and the target variable (interpret the model parameters). Explain and interpret the multiple R squared of the model.*
+
+```{r Diagnostics, out.width="\\maxwidth"}
+par(mfrow=c(2,2))
+plot(model, which=c(1,2,4,5))
+```
+
+*Produce the following diagnostic plots: Residuals vs Fitted values, Normal QQ-plot and Residuals vs Leverage. Explain the assumptions of the model and interpret the validity of those assumptions based on the diagnostic plots. *
