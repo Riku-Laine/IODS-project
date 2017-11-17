@@ -46,7 +46,7 @@ So, from the above we can conclude that the data has 166 observations and each o
 * points in the final exam 
 * measures for
     + deep learning
-    + how surfaced is the learning
+    + how surfaced is the learning (emphasis in learning single, separate pieces of information)
     + strategic learning.
 
 Of the respondents 110 identified themselves as female and 56 as male. Respondents were 17--55 years old and half of them were 21--27 years old. They got an average of 22.72 points on the final exam and were somewhat deep learners ($\mu$ = 3.68). You could say they tend to be strategic learners, because upon implementing a t-test for the mean of Stra_adj, I discovered that the mean differs significantly from 3 ($p \approx 0.446$). The t-test is a classical statistic test which tests if the mean from a group of measurements differs from a values "just by chance".
