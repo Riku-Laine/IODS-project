@@ -1,0 +1,86 @@
+
+# Glimpse to the data
+
+Full information can be found in [here](https://archive.ics.uci.edu/ml/datasets/Student+Performance). 
+
+```{r, echo = F}
+alc <- read.csv("alc.csv")
+
+library(ggplot2)
+
+cat("Column names:\n\n")
+
+colnames(alc)
+```
+
+The data set includes information about students' performance participating in mathematics and Portuguese classes. As described in the website "*The data attributes include student grades, demographic, social and school related features and it was collected by using school reports and questionnaires. Two datasets are provided regarding the performance in two distinct subjects: Mathematics (mat) and Portuguese language (por).*"
+
+The data has information of 382 individuals on 35 subjects. Of the respondents, 198 identified female and 184 male. And the mean age was 16.8 years.
+
+# Studying relationships with alcohol consumption
+
+I chose to model the alcohol consumption by explaining it with nursery school attendance, family size (famsize), relationships' quality (famrel) and absences. I hypothesize that 
+
+* attending nursery school lowers alcohol use
+* the bigger the family, the greater the chance for increased use of alcohol (because of non-existent or minor supervision from parents)
+* better family relationships account for lower use of alcohol
+* more absences are a clear indicator that something is wrong.
+
+
+### Nursery
+
+Let's cross tabulate nursery and alcohol use and take columns' proportional percentages:
+
+```{r Nursery, echo = FALSE}
+taulu <- table(alc$nursery, alc$high_use)
+
+prop.table(taulu, 2)
+```
+
+We see that a slightly larger proportion of those not who had not attended nursery school are in fact "high users". Upon conducting a $\chi^2$-test it was verified that the difference is not significant ($p \approx 0.25$).
+
+### Famsize
+
+Let's do a similar cross tabulation:
+
+```{r famsize, echo = F}
+taulu_fam <- table(alc$famsize, alc$high_use)
+
+prop.table(taulu_fam, 2)
+```
+
+It is seen that the proportions are quite the same, though people in big families seem to be the low users.
+
+### Famrel
+
+Lets plot the proportions:
+
+```{r famrel, echo = F}
+taulu_famrel <- (prop.table(table(alc$famrel, alc$high_use), 2))
+
+barplot(t(taulu_famrel), names.arg = c(1:5), beside=TRUE, xlab = 'Family relations', ylab = 'Proportion', legend.text = c('Low', 'High'), 
+		main = 'Family relations and alcohol use, from 1 (very bad) to 5 (excellent)')
+
+```
+
+The barplot support our hypothesis, high users seem to have worse family relations.
+
+### Absences
+
+```{r assas, echo = F}
+plot(density(alc$absences[!alc$high_use]), xlab='Absences')
+lines(density(alc$absences[alc$high_use]), col='red')
+legend(legend=c('High', 'Low'), x = 'topright', col = c('red', 'black'))
+
+boxplot(alc$absences ~ alc$high_use, horizontal=T,
+		main = 'High use of alcohol by absences', las=1,
+		xlab='Absences')
+
+temp <- summary(alc$absences[alc$high_use])
+temp <- rbind(temp, summary(alc$absences[!alc$high_use]))
+temp
+```
+
+The plots -- yet again -- support our hypothesis, high users seem to have more absences from school.
+
+
