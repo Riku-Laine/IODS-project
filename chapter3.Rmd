@@ -23,7 +23,7 @@ The data set includes information about students' performance participating in m
 
 The data has information of 382 individuals on 35 subjects. Of the respondents, 198 identified female and 184 male. And the mean age was 16.8 years.
 
-# Studying relationships with alcohol consumption
+## Studying relationships with alcohol consumption
 
 I chose to model the alcohol consumption by explaining it with nursery school attendance, family size (famsize), relationships' quality (famrel) and absences. I hypothesize that 
 

@@ -1,11 +1,11 @@
 ---
-title: "IODS course project"
+title: "IODS course diary"
 author: "Riku Laine"
 output:
   html_document:
     theme: yeti
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     fig_caption: true
     fig_width: 6
     fig_height: 4
