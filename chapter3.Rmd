@@ -4,7 +4,10 @@
 Full information can be found in [here](https://archive.ics.uci.edu/ml/datasets/Student+Performance). 
 
 ```{r, echo = F}
-alc <- read.csv("alc.csv")
+library(knitr)
+opts_knit$set(root.dir ="C:/Users/Riku_L/Documents/GitHub/IODS-project/data")
+
+alc <- read.csv("data/alc.csv")
 
 library(ggplot2)
 
@@ -26,6 +29,7 @@ I chose to model the alcohol consumption by explaining it with nursery school at
 * better family relationships account for lower use of alcohol
 * more absences are a clear indicator that something is wrong.
 
+.
 
 ### Nursery
 
@@ -83,4 +87,11 @@ temp
 
 The plots -- yet again -- support our hypothesis, high users seem to have more absences from school.
 
+## Logistic regression
+
+```{r regression}
+model <- glm(high_use ~ nursery + famsize + famrel + absences, data = alc, family = "binomial")
+
+
+```
 
