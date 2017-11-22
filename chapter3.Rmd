@@ -1,9 +1,11 @@
 
-# Glimpse to the data
+# IODS week 3
+
+## Glimpse to the data
 
 Full information can be found in [here](https://archive.ics.uci.edu/ml/datasets/Student+Performance). 
 
-```{r, echo = F}
+```{r, echo = F, message= F}
 library(knitr)
 library(dplyr)
 opts_knit$set(root.dir ="C:/Users/Riku_L/Documents/GitHub/IODS-project/data")
@@ -30,8 +32,6 @@ I chose to model the alcohol consumption by explaining it with nursery school at
 * better family relationships account for lower use of alcohol
 * more absences are a clear indicator that something is wrong.
 
-.
-
 ### Nursery
 
 Let's cross tabulate nursery and alcohol use and take columns' proportional percentages:
@@ -39,24 +39,24 @@ Let's cross tabulate nursery and alcohol use and take columns' proportional perc
 ```{r Nursery, echo = FALSE}
 taulu <- table(alc$nursery, alc$high_use)
 
-prop.table(taulu, 2)
+knitr::kable(prop.table(taulu, 2), caption = "Nursery / high use", digits = 3, align = c('c', 'c', 'c'))
 ```
 
 We see that a slightly larger proportion of those not who had not attended nursery school are in fact "high users". Upon conducting a $\chi^2$-test it was verified that the difference is not significant ($p \approx 0.25$).
 
-### Famsize
+### Family size
 
 Let's do a similar cross tabulation:
 
 ```{r famsize, echo = F}
 taulu_fam <- table(alc$famsize, alc$high_use)
 
-prop.table(taulu_fam, 2)
+knitr::kable(prop.table(taulu_fam, 2), caption = "Family size / high use", digits=3, align = c('c', 'c', 'c'))
 ```
 
-It is seen that the proportions are quite the same, though people in big families seem to be the low users.
+It is seen that the proportions are quite the same, though greater alcohol consumption seems to be associated with living in a smaller family.
 
-### Famrel
+### Quality of family's relations
 
 Lets plot the proportions:
 
@@ -68,11 +68,11 @@ barplot(t(taulu_famrel), names.arg = c(1:5), beside=TRUE, xlab = 'Family relatio
 
 ```
 
-The barplot support our hypothesis, high users seem to have worse family relations.
+The bar plot supports our hypothesis, as high users seem to have worse family relations.
 
 ### Absences
 
-```{r assas, echo = F}
+```{r Absences boxplot, echo = F}
 
 boxplot(alc$absences ~ alc$high_use, horizontal=T,
 		main = 'High use of alcohol by absences', las=1,
@@ -83,6 +83,8 @@ The plots -- yet again -- support our hypothesis, high users seem to have more a
 
 ## Logistic regression
 
+Next we will fit logistic regression model explain reasons for alcohol's high use.
+
 ```{r regression, echo =F}
 model <- glm(high_use ~ nursery + famsize + famrel + absences, data = alc, family = "binomial")
 
@@ -90,20 +92,55 @@ summary(model)
 
 ```
 
-As is seen from the above summary, the number of absences is associated significantly with the high use of alcohol. When absences increase, high use is more probable. The family relations is almost significant ($p \approx 0.056$). Let's print the odds ratios:
+As is seen from the above summary, the number of absences is associated significantly with the high use of alcohol. When absences increase, high use is more probable. The family relations' quality is almost significant ($p \approx 0.056$). Let's print the odds ratios:
 
-```{r, echo=F, message=F}
-exp(model$coefficients)
-exp(confint(model))
+```{r model coeff, echo=F, message=F}
+taulukko <- cbind(Coef = exp(coef(model)), exp(confint(model)))
+knitr::kable(taulukko, caption = "Regression model estimates with 95% CI's", digits=3, align = c('r', 'c', 'c', 'c'))
 ```
 
-In a statistical sense, the only inference that can be made is the effect of absences which supports my original hypothesis. If we strictly look at the estimates the nursery school attendance and family relations are in line with my original hypothesis. Family size is not.
+In a statistical sense, the only inference that can be made is that absences affect alcohol use (or that they are associated, correlation doesn't imply causality) which supports my original hypothesis. If we strictly look at the estimates, the nursery school attendance and family relations are in line with my original hypothesis. the effect of family size is not.
+
+## Exploring the predictive power of my model
 
 ```{r  Predictions, echo = F}
 alc$probability <- predict(model, type =  'response')
 
 alc <- mutate(alc, prediction = probability > 0.5)
 
-table(high_use = alc$high_use, prediction = alc$prediction)
+table(high_use_actual = alc$high_use, prediction = alc$prediction)
+
+plot(model$linear.predictors, alc$probability, ylim = c(0,1), xlim=c(-3,3), ylab='Prob.')
+points(y=alc$high_use, x=model$linear.predictors, col = alc$prediction+3)
+
+cat("Total proportion of inaccurately classified individuals: ")
+
+1-(258+17)/(258+10+97+17)
+
 ```
 
+Comments:
+
+* The model predicted the false ones quite well
+* In the true ones there were some issues: of the 114 true high users, only 17 was correctly identified.
+* If we would have just guessed the out comes by say, flipping a coin, we would have achieved significantly worse results. To confirm this, if we conducted a binomial test with parameters that we had $258+17=275$ successes in $258+10+97+17=382$ trials and that the underlying probability would have been 0.5, the test would have resulted in $p \leq 2.2\cdot10^{-16}$. Htis means that with a fair coin (or arbitrary guesses) there would have been no way to be even this accurate.
+
+#### Cross validation
+
+```{r cross validation, echo=F}
+loss_func <- function(class, prob) {
+  n_wrong <- abs(class - prob) > 0.5
+  mean(n_wrong)
+}
+
+# compute the average number of wrong predictions in the (training) data
+loss_func(alc$high_use, alc$probability)
+
+library(boot)
+cv <- cv.glm(data = alc, cost = loss_func, glmfit = model, K = 10)
+
+# average number of wrong predictions in the cross validation
+cv$delta[1]
+```
+
+My model has around 28 percent error rate, so it is worse than the one in DataCamp, but usually better than the one given by the cross validation function.
