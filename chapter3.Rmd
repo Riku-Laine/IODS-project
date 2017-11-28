@@ -144,3 +144,25 @@ cv$delta[1]
 ```
 
 My model has around 28 percent error rate, so it is worse than the one in DataCamp, but usually better than the one given by the cross validation function.
+
+#### Super-über bonus task
+
+Lets find the best model, as there are 33 usable variables for analyses, there are 8,589,934,591 possible combinations to use 1--33 variables.
+
+```{r}
+# allPermutations <- gtools::permutations(33,4)
+# 
+# model_x <- glm(high_use ~ . -alc_use-high_use-probability-prediction-Walc-Dalc , data = alc, family = "binomial")
+# pvals <- c(NA)
+# for (index in 1:nrow(allPermutations)){
+# 	model_xs <- glm(alc$high_use ~ alc[, allPermutations[index, 1]]+ alc[, allPermutations[index, 2]] + alc[, allPermutations[index, 3]] + alc[, allPermutations[index, 4]], family = "binomial")
+# 	cv_x <- cv.glm(data = alc, cost = loss_func, glmfit = model_xs, K = 5)
+# 	pvals[index] <- cv_x$delta[1]
+# }
+# cv_x <- cv.glm(data = alc, cost = loss_func, glmfit = model_x, K = 10)
+# cv_x$delta[1]
+
+# Significance fathers occ , schoolsup and higher
+
+```
+

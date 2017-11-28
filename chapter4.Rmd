@@ -1,0 +1,148 @@
+
+## IODS week 4: Clustering
+
+Let's load the data and look at it's dimensions and structure:
+
+```{r, echo =F}
+library(MASS)
+
+data("Boston")
+
+str(Boston)
+
+dim(Boston)
+```
+
+So it appears, that the data has information on 14 variables from 506 individual observations. 
+
+```{r,  cache=TRUE}
+library(ggplot2)
+library(GGally)
+
+ggpairs(Boston[,!colnames(Boston) %in% c('chas', 'rad')])
+
+# Lets print the summaries without chas and ras which were classes.
+
+summary(Boston[,!colnames(Boston) %in% c('chas', 'rad')])
+
+table(Boston$chas)
+table(Boston$rad)
+```
+Jänniä yhteyksiä.
+
+```{r}
+boston_s <- as.data.frame(scale(Boston))
+
+summary(boston_s)
+```
+
+
+
+```{r}
+boston_s$crime <- cut(boston_s$crim, breaks = quantile(boston_s$crim), include.lowest = TRUE, labels = c("low", "med_low", "med_high", "high"))
+
+boston_s <- dplyr::select(boston_s, -crim)
+
+selection <- sample(x = 1:nrow(boston_s), size = round(0.8*nrow(boston_s)))
+
+train <- boston_s[selection, ]
+
+test <- boston_s[-selection, ]
+```
+
+```{r}
+lda.fit <- lda(crime ~ ., data = train)
+
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+# target classes as numeric
+classes <- as.numeric(train$crime)
+
+# plot the lda results
+plot(lda.fit, dimen = 2, col = classes , pch = classes)
+lda.arrows(lda.fit, myscale = 1)
+```
+
+```{r}
+crimecat_actual <- test$crime
+test <- dplyr::select(test, -crime)
+
+lda.pred <- predict(lda.fit, newdata = test)
+
+# cross tabulate the results
+table(correct = crimecat_actual, predicted = lda.pred$class)
+
+
+
+```
+
+jännä
+
+```{r, echo = F}
+boston_reload <- as.data.frame(scale(Boston))
+
+boston_distances <- dist(boston_reload)
+
+set.seed(42)
+
+# determine the number of clusters
+k_max <- 10
+
+# calculate the total within sum of squares
+twcss <- sapply(1:k_max, function(k){kmeans(boston_reload, k)$tot.withinss})
+
+# visualize the results
+library(ggplot2)
+qplot(x = 1:k_max, y = twcss, geom = 'line')
+
+# k-means clustering
+km <-kmeans(boston_reload, centers = 2)
+
+# plot the Boston dataset with clusters
+pairs(boston_reload, col = km$cluster)
+
+
+```
+
+```{r}
+# k-means clustering
+set.seed(777)
+
+bst <- as.data.frame(scale(Boston))
+
+km_5 <- kmeans(bst, centers = 5)
+
+lda.fit2 <- lda(km_5$cluster ~ ., data = bst)
+
+# target classes as numeric
+class <- as.numeric(km_5$cluster)
+
+# plot the lda results
+plot(lda.fit2, dimen = 2, col = class , pch = class)
+lda.arrows(lda.fit2, myscale = 1)
+```
+
+```{r}
+model_predictors <- dplyr::select(train, -crime)
+
+# check the dimensions
+dim(model_predictors)
+dim(lda.fit$scaling)
+
+# matrix multiplication
+matrix_product <- as.matrix(model_predictors) %*% lda.fit$scaling
+matrix_product <- as.data.frame(matrix_product)
+
+
+plotly::plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, type= 'scatter3d', mode='markers', color = train$crime)
+
+#plotly::plot_ly(x = matrix_product$LD1, y = matrix_product$LD2, z = matrix_product$LD3, type= 'scatter3d', mode='markers', color = km$cluster)
+```
+
