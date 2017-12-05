@@ -3,7 +3,7 @@
 
 Let's load the data and look at it's dimensions and structure:
 
-```{r, echo =F}
+```{r Structure and dimensions, echo = F}
 library(MASS)
 
 data("Boston")
@@ -13,11 +13,30 @@ str(Boston)
 dim(Boston)
 ```
 
-So it appears, that the data has information on 14 variables from 506 individual observations. 
+The data is called *Housing Values in Suburbs of Boston* and it has information on 14 variables from 506 individual observations. The data is as follows ([source](https://stat.ethz.ch/R-manual/R-devel/library/MASS/html/Boston.html)):
 
-```{r,  cache=TRUE}
+* crim: per capita crime rate by town.
+* zn: proportion of residential land zoned for lots over 25,000 sq.ft.
+* indus: proportion of non-retail business acres per town.
+* chas: Charles River dummy variable (= 1 if tract bounds river; 0 otherwise).
+* nox: nitrogen oxides concentration (parts per 10 million).
+* rm: average number of rooms per dwelling.
+* age: proportion of owner-occupied units built prior to 1940.
+* dis: weighted mean of distances to five Boston employment centres.
+* rad: index of accessibility to radial highways.
+* tax: full-value property-tax rate per \$10,000.
+* ptratio: pupil-teacher ratio by town.
+* black: $1000*(Bk - 0.63)^2$ where Bk is the proportion of blacks by town.
+* lstat: lower status of the population (percent).
+* medv: median value of owner-occupied homes in \$1000s.
+
+### Graphical and numerical overview
+
+```{r Graphical overview, echo = F}
 library(ggplot2)
 library(GGally)
+library(tidyverse)
+library(corrplot)
 
 ggpairs(Boston[,!colnames(Boston) %in% c('chas', 'rad')])
 
@@ -25,20 +44,23 @@ ggpairs(Boston[,!colnames(Boston) %in% c('chas', 'rad')])
 
 summary(Boston[,!colnames(Boston) %in% c('chas', 'rad')])
 
-table(Boston$chas)
-table(Boston$rad)
-```
-Jänniä yhteyksiä.
+table(`Charles River dummy variable` = Boston$chas)
+table(`Index of accessibility to radial highways` = Boston$rad)
 
-```{r}
+corrplot(cor(Boston), method="circle", type = "lower",  cl.pos="b", tl.pos="d", tl.cex = 0.6, title = "Correlation matrix of Boston data")
+```
+
+From these we see that there are some significant correlations between our variables. From the paired plot it is visible that the dependencies are not necessarily linear, rather exponential of nature. Distributions of some are heavily skewed or bimodal (tax or indus). 
+
+```{r Summaries, echo = FALSE}
 boston_s <- as.data.frame(scale(Boston))
 
 summary(boston_s)
 ```
 
+Their means went to zero and variability was also scaled.
 
-
-```{r}
+```{r Training and test set, echo = FALSE}
 boston_s$crime <- cut(boston_s$crim, breaks = quantile(boston_s$crim), include.lowest = TRUE, labels = c("low", "med_low", "med_high", "high"))
 
 boston_s <- dplyr::select(boston_s, -crim)
@@ -50,7 +72,7 @@ train <- boston_s[selection, ]
 test <- boston_s[-selection, ]
 ```
 
-```{r}
+```{r LDA, echo =F}
 lda.fit <- lda(crime ~ ., data = train)
 
 lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
@@ -70,20 +92,18 @@ plot(lda.fit, dimen = 2, col = classes , pch = classes)
 lda.arrows(lda.fit, myscale = 1)
 ```
 
-```{r}
+```{r Predictions , echo =F}
 crimecat_actual <- test$crime
 test <- dplyr::select(test, -crime)
 
 lda.pred <- predict(lda.fit, newdata = test)
 
 # cross tabulate the results
-table(correct = crimecat_actual, predicted = lda.pred$class)
-
-
-
+taulu <- table(correct = crimecat_actual, predicted = lda.pred$class)
+taulu
 ```
 
-jännä
+The predictions were quite good. The over all error rate was `r round((10+17)/sum(taulu), digits=2)` percent.
 
 ```{r, echo = F}
 boston_reload <- as.data.frame(scale(Boston))
@@ -111,8 +131,7 @@ pairs(boston_reload, col = km$cluster)
 
 ```
 
-```{r}
-# k-means clustering
+```{r k-means clustering, echo =F}
 set.seed(777)
 
 bst <- as.data.frame(scale(Boston))
@@ -129,7 +148,9 @@ plot(lda.fit2, dimen = 2, col = class , pch = class)
 lda.arrows(lda.fit2, myscale = 1)
 ```
 
-```{r}
+It seems rad is very influential.
+
+```{r Plot, echo =FALSE}
 model_predictors <- dplyr::select(train, -crime)
 
 # check the dimensions

@@ -30,4 +30,33 @@ gii <- mutate(gii, labourRatio = LabourF / LabourM)
 
 human <- inner_join(x = hd, y = gii, by = "Country")
 
-write.csv(human, "human.csv")
+write.csv(human, "~/GitHub/IODS-project/data/human.csv")
+
+###################
+
+# Week 5
+
+library(dplyr)
+library(stringr)
+
+# 1
+
+human <- mutate(human, GNICapita = as.numeric(GNICapita, decimal="," ))
+
+human$GNICapita <- str_replace(human$GNICapita, pattern=",", replace ="") %>% as.numeric
+
+human <- human[, colnames(human) %in% c( "Country", "edu2F", "LabourF", "ExpYEd", "LEAB", "GNICapita", "MatMortRatio", "ABR", "ParlRep")]
+
+human <- human[complete.cases(human), ]
+
+# Regions out
+
+notRegions <- nrow(human) - 7
+
+human <- human[1:notRegions, ]
+
+# Define row names with country name
+
+rownames(human) <- human$Country
+
+human$Country <- NULL
