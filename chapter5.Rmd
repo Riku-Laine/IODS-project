@@ -1,0 +1,60 @@
+
+# Week 5 analysis
+
+```{r Data description, echo = F, message=FALSE}
+library(corrplot)
+library(GGally)
+human <- read.csv("~/GitHub/IODS-project/data/human.csv", row.names = 1)
+
+str(human)
+```
+
+From the str() function's output it is seen that the data has 155 observation and that each observation consist of 8 variables as explained below.
+
+```{r muuttujataulu, results='asis', echo=F}
+library(knitr)
+
+taulu <- cbind(`Variable name` = colnames(human), `Explanation` = c("Life expectancy at birth", "Expected years of schooling", "Gross National Income per capita", "Maternal mortality ratio", "Adolescent birth rate", "Percentange of female representatives in parliament", "Proportion of females with at least secondary education", "Proportion of females in the labour force"))
+
+knitr::kable(as.data.frame(taulu))
+
+```
+
+## Graphical overview
+
+```{r visualization, echo = F}
+corrplot(round(cor(human), digits = 2))
+ggpairs(human)
+```
+
+
+Almost all variables are hevily correlated: MatMortRatio and ParlRep have the lowest correlation. From the scatterplots it can be concluded that the correlation isn't necessarily linear. It's also notable that Edu2f is the only one quite uniformly distributed.
+
+```{r pca, echo=F, message=F}
+human_scaled <- scale(human)
+
+pca_human <- prcomp(human)
+cat("Not standardized")
+biplot(pca_human, choices=1:2, cex=c(0.6,1))
+
+pca_human_scaled <- prcomp(human_scaled)
+cat("Standardized")
+biplot(pca_human_scaled, choices=1:2, cex=c(0.6,1))
+
+```
+
+Results are different because PCA doesn't know how to handle different variances. It regards greater variance to be of greater importance too.
+
+```{r}
+library(FactoMineR)
+data(tea)
+str(tea) #Dimensions and structure
+
+set.seed(2017)
+mca <- MCA(tea[, sample(1:ncol(tea), 8)-1], graph = F)
+
+summary(mca)
+
+plot(mca, invisible=c("ind"), habillage = "quali")
+```
+

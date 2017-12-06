@@ -41,8 +41,6 @@ library(stringr)
 
 # 1
 
-human <- mutate(human, GNICapita = as.numeric(GNICapita, decimal="," ))
-
 human$GNICapita <- str_replace(human$GNICapita, pattern=",", replace ="") %>% as.numeric
 
 human <- human[, colnames(human) %in% c( "Country", "edu2F", "LabourF", "ExpYEd", "LEAB", "GNICapita", "MatMortRatio", "ABR", "ParlRep")]
@@ -60,3 +58,5 @@ human <- human[1:notRegions, ]
 rownames(human) <- human$Country
 
 human$Country <- NULL
+
+write.csv(human, "~/GitHub/IODS-project/data/human.csv", row.names = rownames(human))
